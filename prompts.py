@@ -70,65 +70,17 @@ IMPORTANT WRITING GUIDELINES:
 - Create natural transitions between topics rather than abrupt shifts between causes
 - Maintain factual accuracy, situate events in real social, political, and economic context, and reference real events, data, and statistics
 
-FORMAT REQUIREMENTS:
-- A compelling headline that captures the core issue
-- Dateline ({news_source}, {date})
-- 300-{max_words} words of content
+For example, given the following triplets, in the form `subject : relation : hunger-risk episode effect`,
 
-Write ONLY the article text as it would appear in a news publication. Start the article with <start_of_article> and end with <end_of_article>.
+- [Israeli military offensive and restrictions : prevents : food and humanitarian goods reaching hungry population]
+- [Border closure (Rafah crossing with Egypt) : blocks : commercial food imports and aid entry into Gaza]
+- [War economy price inflation : makes : basic foods unaffordable for most families]
+- [Destruction of banking infrastructure : prevents : families from accessing money to purchase available food]
+- [Limited flour availability from aid agencies : serves as : primary barrier against mass starvation]
 
-As an example, the following ground-truth information:
+A realistic article might look like this:
 
-
-{
-  "article_id": "bd73e28c-f190-4a5d-9e12-937c8d463e1a",
-  "language": "EN",
-  "word_count": 1242,
-  "metadata": {
-    "publication_date": "2024-06-28T00:00:00",
-    "country": "Palestine",
-    "region": "Middle East",
-    "district": "Gaza Strip",
-    "source": "Financial Times"
-  },
-  "food_insecurity": {
-    "is_relevant": true,
-    "category": "conflict and violence"
-  },
-  "knowledge_graph": {
-    "triplets": [
-      {
-        "subject": "Israeli military offensive and restrictions",
-        "relation": "prevents",
-        "effect": "food and humanitarian goods reaching hungry population"
-      },
-      {
-        "subject": "Border closure (Rafah crossing with Egypt)",
-        "relation": "blocks",
-        "effect": "commercial food imports and aid entry into Gaza"
-      },
-      {
-        "subject": "War economy price inflation",
-        "relation": "makes",
-        "effect": "basic foods unaffordable for most families"
-      },
-      {
-        "subject": "Destruction of banking infrastructure",
-        "relation": "prevents",
-        "effect": "families from accessing money to purchase available food"
-      },
-      {
-        "subject": "Limited flour availability from aid agencies",
-        "relation": "serves as",
-        "effect": "primary barrier against mass starvation"
-      }
-    ]
-  }
-}
-
-Would generate the following article: 
-
-<start_of_article>"Ramy al-Mutawaq was immensely proud of his well-stocked grocery shop in Jabalia in northern Gaza. Before the war, whenever he felt unhappy, he could lift his spirits by simply sweeping his eyes around its shelves stacked with merchandise.
+"Ramy al-Mutawaq was immensely proud of his well-stocked grocery shop in Jabalia in northern Gaza. Before the war, whenever he felt unhappy, he could lift his spirits by simply sweeping his eyes around its shelves stacked with merchandise.
 "I always had at least between $5,000 and $6,000 worth of stock, and every day I would bring in new supplies," Mutawaq said. "I had everything one could desire, including all kinds of chocolate and instant coffee."
 Now, like many other grocers and supermarkets in the bombed-out wastelands of northern Gaza, Mutawaq's shop is seldom open. There is nearly nothing to sell -- and after war laid waste to the strip and its economy, even tinned peas or beans are too expensive for most people. Starvation is setting in, and Mutawaq's ample stocks are just a memory.
 As Israel pushes on with its offensive in the strip, the hostilities -- along with restrictions imposed by Israel, the closure of the Rafah crossing with Egypt and looting by gangs inside the devastated territory -- mean the flow of food and other humanitarian goods to the hungry, exhausted population has slowed to a trickle. International pressure on Israel to ensure greater aid provision has had limited effect.
@@ -160,9 +112,16 @@ There is no fuel or cooking gas, so his wife and children burn firewood to bake 
 The World Food Programme said on June 23 it had reopened one of Jabalia's two bakeries, producing bread for 3,000 families. Matthew Hollingworth, the organisation's country director for Palestine, said in a video filmed at the bakery that while it helped achieve "some small levels of food security", it was still "essential for commercial fresh food to enter northern Gaza".
 He said every child he met in Gaza was dreaming "of eating vegetables . . . [and] meat [and] they're sick of eating aid [such as tinned food], even though it's keeping them alive. But it's barely a life."
 International attempts to broker a ceasefire that would allow more supplies into the enclave have so far failed. Israel has said it is shifting to a lower-intensity phase of conflict, but after nine months of war, Al-Mutawaq has given up on returning to the modest prosperity he previously achieved.
-"All our ambitions for the future have been dashed," he said. "There is nothing to be optimistic about."<end_of_article>
+"All our ambitions for the future have been dashed," he said. "There is nothing to be optimistic about."
 
 
-Use this example to undestand the complexity, nuance, and style of a realistic article. Note how paragraphs 3-4 blend multiple causes (military action, border closures, and economic impacts) rather than treating each cause separately
+Use this example to undestand the complexity, nuance, and style of a realistic article. Note how paragraphs 3-4 blend multiple causes (military action, border closures, and economic impacts) rather than treating each cause separately.
 NOTE: your article should be more concise than the example while maintaining the same organic integration of causes and effects.
+
+FORMAT REQUIREMENTS:
+- A compelling headline that captures the core issue
+- Dateline ({news_source}, {date})
+- 500-{max_words} words of content
+
+Write ONLY the article text as it would appear in a news publication. Start the article with <!--START OF ARTICLE--> and end with <!--END OF ARTICLE-->.
 """

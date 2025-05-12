@@ -88,8 +88,8 @@ def init_model(config: Dict[str, Any]) -> LLM:
         model=config["model"]["name"],
         tensor_parallel_size=config.get("model", {}).get("tensor_parallel_size", 2),
         trust_remote_code=True,  # Required for Qwen models
-        enable_reasoning=True,   # Required for Qwen3 thinking mode
-        reasoning_parser="deepseek_r1",  # Required parser for Qwen3
+        enable_reasoning=False,   # Required for Qwen3 thinking mode
+        # reasoning_parser="deepseek_r1",  # Required parser for Qwen3
         download_dir=config.get("model", {}).get("download_dir", "/ceph/submit/data/user/b/blaised/cache/vllm")
     )
     
@@ -375,7 +375,7 @@ def generate_article_from_truth(model: LLM, config: Dict[str, Any], structured_d
         triplets_text=triplets_text,
         max_words=config["dataset"]["max_words"]
     )
-    
+
     # Generation parameters
     sampling_params = SamplingParams(
         temperature=config.get("model", {}).get("temperature", 0.6),
@@ -383,13 +383,14 @@ def generate_article_from_truth(model: LLM, config: Dict[str, Any], structured_d
     )
     
     try:
-        # Generate article
+    # Generate article
         outputs = model.generate([prompt], sampling_params)
         
         # extract the article text between the start and end markers (set in the prompt), avoiding the reasoning trace
         raw_text = outputs[0].outputs[0].text.strip()
-        start_marker = "<start_of_article>"
-        end_marker = "<end_of_article>"
+
+        start_marker = "<<!--START OF ARTICLE-->>"
+        end_marker = "<<!--END OF ARTICLE-->>"
         
         start_idx = raw_text.find(start_marker)
         end_idx = raw_text.find(end_marker)
@@ -398,7 +399,7 @@ def generate_article_from_truth(model: LLM, config: Dict[str, Any], structured_d
             article_text = raw_text[start_idx + len(start_marker):end_idx].strip()
         else:
             article_text = raw_text
-        
+
         # Update structured data with the generated article
         structured_data["text"] = article_text
         structured_data["word_count"] = len(article_text.split())
@@ -465,9 +466,9 @@ def generate_non_food_article(model: LLM, config: Dict[str, Any], language: str,
     
     # Generation parameters
     sampling_params = SamplingParams(
-        temperature=config["model"]["temperature"],
-        top_p=config["model"]["top_p"],
-        max_tokens=config["model"]["max_tokens"]
+        temperature=config.get("model", {}).get("temperature", 0.6), # https://huggingface.co/Qwen/Qwen3-8B/blob/main/generation_config.json
+        top_p=config.get("model", {}).get("top_p", 0.95),
+        max_tokens=config.get("model", {}).get("max_tokens", 2048),
     )
     
     try:
@@ -671,7 +672,7 @@ def main():
     print(f"Loaded administrative locations for {len(admin_locations)} countries")
     
     # Initialize model
-    #model = init_model(config)
+    model = init_model(config)
 
     # Calculate distribution of articles
     total_articles = config["dataset"]["size"]
