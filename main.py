@@ -45,6 +45,21 @@ class FoodInsecurityCategory(str, Enum):
     environmental = "environmental issues"
     other = "other"
 
+# Define reputable news sources by language
+NEWS_SOURCES = {
+    "EN": [
+        "BBC", "Financial Times", "Wall Street Journal", "CNN", "The Guardian",
+        "The Washington Post", "The Times of Israel", "Premium Times", "Mail & Guardian",
+        "The Nation", "Daily Nation", "The National"
+    ],
+    "FR": [
+        "Le Monde", "Le Figaro", "L'Express", "Le Point", "Libération"
+    ],
+    "AR": [
+        "Al Jazeera", "Arab News", "Asharq Al-Awsat", "Al-Ahram", "Al-Arabiya"
+    ]
+}
+
 class KnowledgeTriplet(BaseModel):
     subject: str = Field(..., description="A specific cause or factor related to food insecurity")
     relation: str = Field(..., description="The type of relationship between the cause and effect")
@@ -196,16 +211,18 @@ def generate_structured_data(config: Dict[str, Any], language: str, admin_locati
     if district is None:
         district = f"District-{random.randint(1, 10)}"
     
-    # Generate random publication date
-    days_ago = random.randint(0, 730)
+    # Generate random publication date within last 2 years
+    days_ago = random.randint(0, 365*10)  # 10 years
     pub_date = datetime.now() - timedelta(days=days_ago)
     
-    # Generate a random news source
-    news_source = f"Synthetic-News-{random.randint(1, 10)}"
-    if language == "AR":
-        news_source = f"Al-{news_source}"
-    elif language == "FR":
-        news_source = f"Le {news_source}"
+    # Set realistic business hours (8 AM to 8 PM)
+    hour = random.randint(8, 20)
+    minute = random.randint(0, 59)
+    pub_date = pub_date.replace(hour=hour, minute=minute, second=random.randint(0, 59), microsecond=0)
+    
+    # Generate a random news source from the appropriate language list
+    base_sources = NEWS_SOURCES.get(language, NEWS_SOURCES["EN"])  # Fallback to English if language not found
+    news_source = f"Synthetic {random.choice(base_sources)}"
     
     # Select category
     category = random.choice(config["categories"])
@@ -414,16 +431,18 @@ def generate_non_food_article(model: LLM, config: Dict[str, Any], language: str,
     if district is None:
         district = f"District-{random.randint(1, 10)}"
     
-    # Generate random publication date
-    days_ago = random.randint(0, 730)
+    # Generate random publication date within last 2 years
+    days_ago = random.randint(0, 730)  # 2 years
     pub_date = datetime.now() - timedelta(days=days_ago)
     
-    # Generate a random news source
-    news_source = f"Synthetic-News-{random.randint(1, 10)}"
-    if language == "AR":
-        news_source = f"Al-{news_source}"
-    elif language == "FR":
-        news_source = f"Le {news_source}"
+    # Set realistic business hours (8 AM to 8 PM)
+    hour = random.randint(8, 20)
+    minute = random.randint(0, 59)
+    pub_date = pub_date.replace(hour=hour, minute=minute, second=random.randint(0, 59), microsecond=0)
+    
+    # Generate a random news source from the appropriate language list
+    base_sources = NEWS_SOURCES.get(language, NEWS_SOURCES["EN"])  # Fallback to English if language not found
+    news_source = f"Synthetic {random.choice(base_sources)}"
     
     # Generate article ID
     article_id = str(uuid.uuid4())
@@ -652,7 +671,7 @@ def main():
     print(f"Loaded administrative locations for {len(admin_locations)} countries")
     
     # Initialize model
-    model = init_model(config)
+    #model = init_model(config)
 
     # Calculate distribution of articles
     total_articles = config["dataset"]["size"]
