@@ -12,7 +12,7 @@ import json
 import yaml
 import random
 import time
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
 import uuid
 from tqdm import tqdm
@@ -82,7 +82,99 @@ def init_model(config: Dict[str, Any]) -> LLM:
     return model
 
 
-def generate_structured_data(config: Dict[str, Any], language: str) -> Dict[str, Any]:
+def load_admin_locations(file_path: str = "data/admin_lvl1.json") -> Dict[str, List[Dict]]:
+    """
+    Load administrative locations from JSON file and organize by country.
+    
+    Args:
+        file_path: Path to the admin_lvl1.json file
+        
+    Returns:
+        Dictionary mapping country names to lists of admin level 1 locations
+    """
+    try:
+        with open(file_path, "r") as f:
+            locations = json.load(f)
+        
+        # Organize locations by country name (location_name)
+        country_to_locations = {}
+        for location in locations:
+            country = location.get("location_name")
+            if country:
+                if country not in country_to_locations:
+                    country_to_locations[country] = []
+                country_to_locations[country].append(location)
+        
+        if not country_to_locations:
+            raise ValueError("No valid country locations found in the input data")
+            
+        return country_to_locations
+    except Exception as e:
+        print(f"Error loading admin locations: {str(e)}")
+        return {}
+
+
+def select_real_location(config: Dict[str, Any], admin_locations: Dict[str, List[Dict]]) -> Tuple[str, str, Optional[str]]:
+    """
+    Select a random country from config and a random admin level 1 location from that country.
+    
+    Args:
+        config: Configuration dictionary
+        admin_locations: Dictionary mapping country names to lists of admin level 1 locations
+        
+    Returns:
+        Tuple of (country name, region name, district name or None if no match)
+    """
+    # Get all available countries from config
+    all_countries = []
+    for region_data in config["regions"]:
+        all_countries.extend(region_data["countries"])
+    
+    # Shuffle the list of countries to pick randomly
+    random.shuffle(all_countries)
+    
+    # Find a country that exists in both config and admin_locations
+    found_country = None
+    found_region = None
+    
+    for country in all_countries:
+        # Look for exact match
+        if country in admin_locations and admin_locations[country]:
+            found_country = country
+            # Get the region from config that contains this country
+            for region_data in config["regions"]:
+                if country in region_data["countries"]:
+                    found_region = region_data["name"]
+                    break
+            break
+            
+        # Try alternative matches (e.g. "Syrian Arab Republic" for "Syria")
+        for admin_country in admin_locations:
+            if country.lower() in admin_country.lower() or admin_country.lower() in country.lower():
+                found_country = admin_country
+                # Get the region from config that contains this country
+                for region_data in config["regions"]:
+                    if country in region_data["countries"]:
+                        found_region = region_data["name"]
+                        break
+                break
+    
+    # If no match found, return None for district
+    if not found_country or not found_region:
+        print(f"Warning: No admin location found for any country in config. Using fallback.")
+        region_data = random.choice(config["regions"])
+        found_region = region_data["name"]
+        found_country = random.choice(region_data["countries"])
+        return found_country, found_region, None
+    
+    # Select a random admin level 1 location from the chosen country
+    district_data = random.choice(admin_locations[found_country])
+    district_name = district_data.get("name")
+    
+    return found_country, found_region, district_name
+
+
+def generate_structured_data(config: Dict[str, Any], language: str, admin_locations: Dict[str, List[Dict]]) -> Dict[str, Any]:
     """
     Generate structured food insecurity data as the ground truth.
     
@@ -92,15 +184,17 @@ def generate_structured_data(config: Dict[str, Any], language: str) -> Dict[str,
     Args:
         config: Configuration dictionary
         language: Target language for the article
+        admin_locations: Dictionary mapping country names to lists of admin level 1 locations
         
     Returns:
         Dictionary containing structured data (metadata, category, etc.)
     """
-    # Select random region and country
-    region_data = random.choice(config["regions"])
-    region = region_data["name"]
-    country = random.choice(region_data["countries"])
-    district = f"District-{random.randint(1, 10)}"
+    # Select random region, country, and district using real admin locations
+    country, region, district = select_real_location(config, admin_locations)
+    
+    # If no district was found, use a fallback
+    if district is None:
+        district = f"District-{random.randint(1, 10)}"
     
     # Generate random publication date
     days_ago = random.randint(0, 730)
@@ -300,7 +394,7 @@ def generate_article_from_truth(model: LLM, config: Dict[str, Any], structured_d
     return structured_data
 
 
-def generate_non_food_article(model: LLM, config: Dict[str, Any], language: str) -> Dict[str, Any]:
+def generate_non_food_article(model: LLM, config: Dict[str, Any], language: str, admin_locations: Dict[str, List[Dict]]) -> Dict[str, Any]:
     """
     Generate a non-food-related article for the noise portion of the dataset.
     
@@ -308,15 +402,17 @@ def generate_non_food_article(model: LLM, config: Dict[str, Any], language: str)
         model: Initialized language model
         config: Configuration dictionary
         language: Target language for the article
+        admin_locations: Dictionary mapping country names to lists of admin level 1 locations
         
     Returns:
         Dictionary containing article data
     """
-    # Select random region and country
-    region_data = random.choice(config["regions"])
-    region = region_data["name"]
-    country = random.choice(region_data["countries"])
-    district = f"District-{random.randint(1, 10)}"
+    # Select random region, country, and district using real admin locations
+    country, region, district = select_real_location(config, admin_locations)
+    
+    # If no district was found, use a fallback
+    if district is None:
+        district = f"District-{random.randint(1, 10)}"
     
     # Generate random publication date
     days_ago = random.randint(0, 730)
@@ -549,7 +645,11 @@ def main():
     
     # Load configuration
     config = load_config()
-    output_path = "data/food_insecurity_articles.parquet"
+    output_path = "scratch/food_insecurity_articles.parquet"
+    
+    # Load administrative locations
+    admin_locations = load_admin_locations()
+    print(f"Loaded administrative locations for {len(admin_locations)} countries")
     
     # Initialize model
     model = init_model(config)
@@ -571,7 +671,7 @@ def main():
         print(f"\nGenerating {food_articles_per_language} food insecurity articles in {language}...")
         for _ in tqdm(range(food_articles_per_language)):
             # Step 1: Generate structured data first
-            structured_data = generate_structured_data(config, language)
+            structured_data = generate_structured_data(config, language, admin_locations)
 
             # Step 2: Generate knowledge triplets
             structured_data = generate_knowledge_triplets(model, config, structured_data)
@@ -584,7 +684,7 @@ def main():
         # Generate non-food articles
         print(f"Generating {noise_articles_per_language} non-food articles in {language}...")
         for _ in tqdm(range(noise_articles_per_language)):
-            article = generate_non_food_article(model, config, language)
+            article = generate_non_food_article(model, config, language, admin_locations)
             dataset.append(article)
     
     # Print statistics about the generated dataset
@@ -601,4 +701,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # Uncomment to run the main dataset generation
     main()
