@@ -1,9 +1,9 @@
 # Dataset parameters
 dataset:
   size: 12
-  languages: ["EN", "FR", "AR"]
+  languages: ["EN",]
   noise_percentage: 20
-  max_words: 500
+  max_words: 800
 
 # Model configuration
 model:
@@ -30,8 +30,8 @@ regions:
   - name: West Africa
     countries: [Nigeria, Niger, Mali, Burkina Faso, Chad]
   - name: Middle East
-    countries: [Yemen, Syria, Lebanon, Iraq]
+    countries: [Yemen, Syrian Arab Republic, Lebanon, Iraq]
   - name: Central Africa
-    countries: [Democratic Republic of Congo, Central African Republic, Cameroon]
+    countries: [Democratic Republic of the Congo, Central African Republic, Cameroon]
   - name: Southern Africa
     countries: [Zimbabwe, Mozambique, Malawi]
