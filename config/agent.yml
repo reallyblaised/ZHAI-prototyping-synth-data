@@ -1,0 +1,109 @@
+# Agentic Article Refinement System Configuration
+
+# Model configuration
+model:
+  name: "google/gemma-3-4b-it"
+  temperature: 0.7
+  max_tokens: 2048
+
+# System parameters
+system:
+  max_iterations: 3
+  evaluation_threshold: 7.0  # Minimum acceptable score (out of 10)
+  rag_results_count: 10      # Number of reference articles to retrieve
+  human_feedback_interval: 2 # Ask for human feedback every N iterations
+
+# Logging configuration
+logging:
+  level: "INFO"
+  log_to_file: true
+  log_file: "logs/agentic_refinement.log"
+
+# Agent-specific configurations
+agents:
+  proposer: # initial article proposal
+    temperature: 0.7
+    max_tokens: 2048
+    model: "google/gemma-3-4b-it" # optional override
+  
+  reviewer:
+    temperature: 0.2  # Lower temperature for more consistent evaluations
+    max_tokens: 1000
+    model: "google/gemma-3-4b-it"
+  
+  reviser:
+    temperature: 0.4  # Moderate temperature for creativity with consistency
+    max_tokens: 1500
+    model: "google/gemma-3-4b-it"
+
+# Weights & Biases integration
+wandb:
+  enabled: true
+  project: "agentic-article-refinement"
+  entity: "reallyblaised"
+  tags: ["article-refinement", "rag", "agentic"]
+
+# Chroma vector database configuration
+chroma:
+  path: "./chroma_db"
+  collection_name: "reference_articles"
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"  # embedding model - for now, use ChromaDB default
+
+# prompts to orchestrate the agents, downstream of the initial article proposal
+prompts:
+  reviewer_template: |
+    Evaluate the following article for stylistic compatibility with the provided reference articles.
+    
+    ARTICLE TO EVALUATE:
+    {article_content}
+    
+
+    STEP 1. KNOWLDGE TRIPLETS COMPLIANCE: produce a binary score (0 or 1) for each triplet of the following triplets, where 0 means the triplet is not present in the article and 1 means it is present. Each triplet should be developed with at least one full sentence of context (not specifically replicating the wording of the triplets, but the effective co-occurrence or causal relationships they encode):
+    {triplets}
+    
+    STEP 2. REFERENCE ARTICLES FOR STYLE COMPARISON: rate the article against the reference articles below on a scale of 1-10 for:
+    
+    1. Journalistic style: How well does the article match the style of professional journalism?
+    2. Natural integration: How naturally are the causal relationships integrated?
+    3. Narrative flow: How well does the article flow as a cohesive story?
+    4. Factuality: How well does the article present facts in an accurate, verifiable manner?
+
+    Reference articles:
+    {reference_articles}
+    
+    Format your response as:
+    Journalistic style: [SCORE]/10
+    Natural integration: [SCORE]/10
+    Narrative flow: [SCORE]/10
+    Factuality: [SCORE]/10
+    
+    DETAILED EVALUATION:
+    [Your detailed analysis of the article's strengths and weaknesses]
+    
+    SUGGESTIONS FOR IMPROVEMENT:
+    [Your specific suggestions for improving the prompt to generate a better article. NOTE: you should not assess the factual elements of the article, only the stylistic compliance against the reference articles to produce a better article of the caliber of a reputable journalistic source.]
+
+  reviser_template: |
+    ORIGINAL PROMPT:
+    {original_prompt}
+    
+    EVALUATION OF THE ARTICLE:
+    {evaluation}
+    
+    SPECIFIC SUGGESTIONS FROM REVIEWER:
+    {suggestions}
+    
+    TASK:
+    Based on this evaluation, create an improved version of the original prompt
+    that will address the weaknesses identified. This is iteration {iteration}/{max_iterations}.
+    
+    Your revised prompt should:
+    1. Keep the core aspects of the original prompt - critically, the all spatial and temporal entities and the broad thematic elements referring to food insecurity risks
+    2. Incorporate the specific suggestions
+    3. Address any style, integration, narrative flow or factuality issues
+    4. Be clear and comprehensive
+    5. Maintain a similar word count to the original article
+    
+    PROVIDE YOUR REASONING AND THEN THE REVISED PROMPT:
+    First explain your reasoning for the changes, then provide ONLY the improved prompt text without any additional explanations.
+    Separate your reasoning and the revised prompt with '--- REVISED PROMPT ---'

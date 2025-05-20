@@ -1,0 +1,38 @@
+# Dataset parameters
+dataset:
+  size: 10
+  languages: ["EN",]
+  noise_percentage: 20
+  max_words: 1500 # upper bound of article length [min: 500 words]
+
+# Model configuration
+model:
+  name: "Qwen/Qwen3-8B" # VLLM model ID
+  max_tokens: 8192 # autoregressive sampling - must be large enough to accommodate prompt + response
+
+# Categories of food insecurity - from Balashankaretal.,Sci.Adv.9,eabm3449(2023)
+categories:
+  - conflict and violence
+  - political instability
+  - humanitarian aid
+  - economic issues
+  - production shortage
+  - weather conditions
+  - food crisis
+  - land-related issues
+  - pests and disease
+  - forced displacement
+  - environmental issues
+
+# Geographic regions and countries 
+regions:
+  - name: East Africa
+    countries: [Somalia, Ethiopia, Kenya, South Sudan, Sudan]
+  - name: West Africa
+    countries: [Nigeria, Niger, Mali, Burkina Faso, Chad]
+  - name: Middle East
+    countries: [Yemen, Syrian Arab Republic, Lebanon, Iraq]
+  - name: Central Africa
+    countries: [Democratic Republic of the Congo, Central African Republic, Cameroon]
+  - name: Southern Africa
+    countries: [Zimbabwe, Mozambique, Malawi]
