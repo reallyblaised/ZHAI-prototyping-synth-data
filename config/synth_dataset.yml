@@ -1,0 +1,8 @@
+# Synthetic dataset parameters generation
+path_prefix: "/ceph/submit/data/user/b/blaised/private/zhai_synthetic_dataset"
+
+dataset:
+  size: 1
+  languages: ["EN",]
+  noise_percentage: 20
+  max_words: 1500 # upper bound of article length [min: 500 words]

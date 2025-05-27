@@ -1,0 +1,33 @@
+# Categories of food insecurity - from Balashankaretal.,Sci.Adv.9,eabm3449(2023)
+categories:
+  - conflict and violence
+  - political instability
+  - humanitarian aid
+  - economic issues
+  - production shortage
+  - weather conditions
+  - food crisis
+  - land-related issues
+  - pests and disease
+  - forced displacement
+  - environmental issues
+
+# Geographic regions and countries 
+regions:
+  - name: East Africa
+    countries: [Somalia, Ethiopia, Kenya, South Sudan, Sudan]
+  - name: West Africa
+    countries: [Nigeria, Niger, Mali, Burkina Faso, Chad]
+  - name: Middle East
+    countries: [Yemen, Syrian Arab Republic, Lebanon, Iraq]
+  - name: Central Africa
+    countries: [Democratic Republic of the Congo, Central African Republic, Cameroon]
+  - name: Southern Africa
+    countries: [Zimbabwe, Mozambique, Malawi]
+
+
+# Chroma vector database configuration for RAG against reference articles
+chroma:
+  path: "/ceph/submit/data/user/b/blaised/private/zhai_synthetic_dataset/chroma_db"
+  collection_name: "reference_articles"
+  embedding_model: "sentence-transformers/all-MiniLM-L6-v2"  # embedding model - for now, use ChromaDB default
